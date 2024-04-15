@@ -21,7 +21,7 @@ $(document).on('click', '.add-to-cart', function() {
     // Найти цену в строке и извлечь число
     var priceString = $(this).siblings("h3").text();
     var priceParts = priceString.split("Price:");
-    var itemPrice = parseFloat(priceParts[1].trim());
+    itemPrice = parseFloat(priceParts[1].trim());
 
 
     var itemModifiers = $(this).siblings(".modifier-controls");
@@ -50,6 +50,7 @@ $(document).on('click', '.add-to-cart', function() {
 function addItemToCart(name, price, modifierQuantities, totalPrice) {
     var cartItems = document.getElementById("cart-items");
     var itemElement = document.createElement("div");
+    itemElement.dataset.price = price;
     itemElement.classList.add("cart-item");
 
     var itemInfo = document.createElement("div");
@@ -96,9 +97,14 @@ function updateCartCount(count) {
 }
 
 // Обновление отображения общей суммы блюд в корзине
-function updateTotalCartPrice(totalPrice) {
-    var totalPriceElement = document.querySelector(".total-price");
-    totalPriceElement.textContent = "$" + totalPrice.toFixed(2);
+function updateTotalCartPrice() {
+    var totalPrice = 0;
+    $('.cart-item').each(function() {
+        var quantity = $(this).find('.item-quantity').val();
+        var price = parseFloat($(this).data('price'));
+        totalPrice += quantity * price;
+    });
+    $('.total-price').text("$" + totalPrice.toFixed(2));
 }
 
 // Удаление товара из корзины
@@ -116,15 +122,24 @@ $(document).on('click', '.remove-item-btn', function() {
 
 // Изменение количества товара в корзине
 $(document).on('change', '.item-quantity', function() {
-    var quantity = $(this).val();
-    var price = parseFloat($(this).siblings("div:nth-child(1)").text().split(' ')[2]);
-    var totalPrice = quantity * price;
+    var quantity = parseInt($(this).val()); // Получаем новое количество товара
+    var price = parseFloat($(this).siblings(".cart-item").find(".item-info").text().split('$')[1]); // Получаем цену товара
+    var totalPrice = quantity * price; // Вычисляем общую стоимость товара
 
-    $(this).siblings("div:nth-child(2)").text("Total: $" + totalPrice.toFixed(2));
+    $(this).siblings("div:nth-child(2)").text("Total: $" + totalPrice.toFixed(2)); // Обновляем строку "Total" внутри элемента корзины
 
-    totalCartPrice -= price;
-    totalCartPrice += totalPrice;
-    updateTotalCartPrice(totalCartPrice);
+    totalCartPrice -= price; // Вычитаем старую цену товара из общей суммы
+    totalCartPrice += totalPrice; // Добавляем новую общую стоимость товара
+
+    // Обновляем счетчик корзины в зависимости от изменения количества товара
+    if (quantity > cartCount) {
+        updateCartCount(++cartCount); // Если увеличили количество, увеличиваем счетчик
+    } else if (quantity < cartCount) {
+        updateCartCount(--cartCount); // Если уменьшили количество, уменьшаем счетчик
+    }
+
+
+    updateTotalCartPrice(totalCartPrice); // Обновляем общую сумму корзины
 });
 
 /*********************************/

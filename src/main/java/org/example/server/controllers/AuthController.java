@@ -32,7 +32,7 @@ public class AuthController {
     public String register(HttpServletRequest request, HttpServletResponse response, Model model){
         User user = new User();
         model.addAttribute("user",user);
-        return "register";
+        return "login/register";
     }
 
     @RequestMapping(value = "/register",method = RequestMethod.POST)
@@ -58,7 +58,7 @@ public class AuthController {
 
     @RequestMapping(value = "/login",method = RequestMethod.GET)
     public String login(){
-        return "login";
+        return "login/login";
     }
 
     @RequestMapping(value = "/logout",method = RequestMethod.GET)
@@ -72,6 +72,6 @@ public class AuthController {
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String home(){
-        return "home";
+        return "test/rest";
     }
 }
