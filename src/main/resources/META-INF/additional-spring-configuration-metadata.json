@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "spring.oracle.persistence.unit",
+      "type": "java.lang.String",
+      "description": "Description for spring.oracle.persistence.unit."
+  }
+] }

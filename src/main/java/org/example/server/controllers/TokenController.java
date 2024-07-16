@@ -46,9 +46,6 @@ public class TokenController {
     ObjectMapper objectMapper = new ObjectMapper();
     HttpHeaders headers = new HttpHeaders();
 
-
-
-
     @RequestMapping(value = "/getToken",method = RequestMethod.GET)
     public String getToken() throws JsonProcessingException {
         String requestBody = "{\"apiLogin\": \"d0987401-674\"}";
@@ -86,11 +83,8 @@ public class TokenController {
                 return "redirect:/getOrganization";
             }
         }
-        return "tokenResult";
+        return "test/tokenResult";
     }
-
-
-
 
     @RequestMapping(value = "/saveProducts", method = RequestMethod.GET)
     public String saveProducts(Model model) throws JsonProcessingException {
@@ -124,12 +118,13 @@ public class TokenController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return "tokenResult";
+        return "test/tokenResult";
     }
 
 
     @RequestMapping(value = "/getMenu", method = RequestMethod.GET)
     public String getMenu(Model model){
+
         /*List<Product> products = productService.listProduct();
         List<DishWithModifiers> dishesWithModifiers = new ArrayList<>();
 
@@ -143,7 +138,8 @@ public class TokenController {
         model.addAttribute("products", products);
         model.addAttribute("dishes", dishesWithModifiers);
         return "tokenResult";*/
-        return "rest";
+
+        return "test/rest";
     }
 
     @GetMapping("/api/menu")

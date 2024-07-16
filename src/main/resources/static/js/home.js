@@ -18,33 +18,65 @@ $(document).on('click', '.add-to-cart', function() {
     updateCartCount(cartCount);
 
     var itemName = $(this).siblings("h2").text();
-    // Найти цену в строке и извлечь число
-    var priceString = $(this).siblings("h3").text();
-    var priceParts = priceString.split("Price:");
-    itemPrice = parseFloat(priceParts[1].trim());
+    var existingItem = findItemInCart(itemName);
 
+    if (existingItem) {
+        // Если товар найден, увеличиваем его количество на 1
+        var currentQuantity = parseInt(existingItem.find(".item-quantity").val());
+        existingItem.find(".item-quantity").val(currentQuantity + 1);
 
-    var itemModifiers = $(this).siblings(".modifier-controls");
+        // Обновляем общую стоимость товара в корзине
+        var existingItemPrice = parseFloat(existingItem.find(".item-info").text().split("$")[1]);
+        var newTotalPrice = (currentQuantity + 1) * existingItemPrice;
+        existingItem.find(".total-price").text("Total: $" + newTotalPrice.toFixed(2));
 
-    var itemTotalPrice = itemPrice;
-    var modifierQuantities = [];
+        // Обновляем общую стоимость корзины
+        totalCartPrice += existingItemPrice;
+        updateTotalCartPrice(totalCartPrice);
+    } else {
+        // Если товар не найден, продолжаем добавлять его в корзину
+        var priceString = $(this).siblings("h3").text();
+        var priceParts = priceString.split("Price:");
+        itemPrice = parseFloat(priceParts[1].trim());
 
-    // Добавление модификаторов и вычисление общей стоимости блюда
-    itemModifiers.each(function() {
-        var modifierName = $(this).find("span").text();
-        var modifierQuantity = $(this).find(".modifier-quantity").val();
-        var modifierPrice = parseFloat($(this).find(".modifier-price").text().split(' ')[1]);
+        var itemModifiers = $(this).siblings(".modifier-controls");
 
-        modifierQuantities.push(modifierQuantity);
-        itemTotalPrice += modifierPrice * modifierQuantity;
-    });
-    console.log("itemName:", itemName);
-    console.log("itemPrice:", itemPrice);
-    console.log("modifierQuantities:", modifierQuantities);
-    console.log("itemTotalPrice:", itemTotalPrice);
+        var itemTotalPrice = itemPrice;
+        var modifierQuantities = [];
 
-    addItemToCart(itemName, itemPrice, modifierQuantities, itemTotalPrice);
+        // Добавление модификаторов и вычисление общей стоимости блюда
+        itemModifiers.each(function() {
+            var modifierName = $(this).find("span").text();
+            var modifierQuantity = $(this).find(".modifier-quantity").val();
+            var modifierPrice = parseFloat($(this).find(".modifier-price").text().split(' ')[1]);
+
+            modifierQuantities.push(modifierQuantity);
+            itemTotalPrice += modifierPrice * modifierQuantity;
+        });
+        console.log("itemName:", itemName);
+        console.log("itemPrice:", itemPrice);
+        console.log("modifierQuantities:", modifierQuantities);
+        console.log("itemTotalPrice:", itemTotalPrice);
+
+        addItemToCart(itemName, itemPrice, modifierQuantities, itemTotalPrice);
+    }
 });
+
+
+function findItemInCart(itemName) {
+    var cartItems = $('#cart-items').children('.cart-item');
+    var existingItem = null;
+
+    cartItems.each(function() {
+        if ($(this).find(".item-info").text() === itemName) {
+            existingItem = $(this);
+            return false; // Прерываем цикл each, так как товар найден
+        }
+
+        console.log("cartItems" + $(this).find(".item-info").text())
+    });
+    return existingItem;
+}
 
 // Добавление товара в корзину с учётом модификаторов и обновление общей суммы
 function addItemToCart(name, price, modifierQuantities, totalPrice) {
@@ -122,6 +154,7 @@ $(document).on('click', '.remove-item-btn', function() {
 
 // Изменение количества товара в корзине
 $(document).on('change', '.item-quantity', function() {
+
     var quantity = parseInt($(this).val()); // Получаем новое количество товара
     var price = parseFloat($(this).siblings(".cart-item").find(".item-info").text().split('$')[1]); // Получаем цену товара
     var totalPrice = quantity * price; // Вычисляем общую стоимость товара
@@ -133,14 +166,17 @@ $(document).on('change', '.item-quantity', function() {
 
     // Обновляем счетчик корзины в зависимости от изменения количества товара
     if (quantity > cartCount) {
-        updateCartCount(++cartCount); // Если увеличили количество, увеличиваем счетчик
+        cartCount++;
+        updateCartCount(cartCount); // Если увеличили количество, увеличиваем счетчик
     } else if (quantity < cartCount) {
-        updateCartCount(--cartCount); // Если уменьшили количество, уменьшаем счетчик
+        cartCount--;
+        updateCartCount(cartCount); // Если уменьшили количество, уменьшаем счетчик
     }
 
 
     updateTotalCartPrice(totalCartPrice); // Обновляем общую сумму корзины
 });
+
 
 /*********************************/
 
@@ -150,7 +186,13 @@ $(document).ready(function() {
         var products = data.products;
         var productsList = $('#products');
         $.each(products, function(index, product) {
-            productsList.append('<li>' + product.name + ' (Code: ' + product.code + ', Price: ' + product.currentPrice + ')</li>');
+            // productsList.append('<div data-category="product">' + product.name + ' (Code: ' + product.code + ', Price: ' + product.currentPrice + ')</div>');
+            var productElement = $('<div class="dish"></div>');
+            productElement.attr('data-category', "product");
+            productElement.append('<h2>' + product.name + '</h2>')
+            productElement.append('<h3>' + 'Code: ' + product.code + ', Price: ' + product.currentPrice + '</h3>')
+            productElement.append('<button class="add-to-cart">Добавить в корзину</button>\n')
+            productsList.append(productElement);
         });
 
         // Вывести блюда
@@ -161,6 +203,7 @@ $(document).ready(function() {
             $.each(dishes, function(index, dishWithModifiers) {
                 // Создаем элемент блюда
                 var dishElement = $('<div class="dish"></div>');
+                dishElement.attr('data-category', "dishes");
                 dishElement.append('<h2>' + dishWithModifiers.dish.name + '</h2>');
                 dishElement.append('<h3>' + 'Code: ' + dishWithModifiers.dish.code + ', Price: ' + dishWithModifiers.dish.currentPrice + '</h3>');
 
@@ -192,6 +235,24 @@ $(document).ready(function() {
                 // Добавляем элемент блюда на страницу
                 dishesContainer.append(dishElement);
             });
+        });
+
+        // Обработчик события клика по кнопке категории
+        $('.category').on('click', function() {
+            // Удаляем класс active у всех кнопок
+            $('.category').removeClass('active');
+
+            // Добавляем класс active к нажатой кнопке
+            $(this).addClass('active');
+
+            // Получаем выбранную категорию
+            var category = $(this).data('category');
+
+            // Скрываем все элементы в контейнерах #products и #dishes
+            $('#products .dish, #dishes .dish').hide();
+
+            // Отображаем только элементы выбранной категории
+            $('#products .dish[data-category="' + category + '"], #dishes .dish[data-category="' + category + '"]').show();
         });
     });
 });

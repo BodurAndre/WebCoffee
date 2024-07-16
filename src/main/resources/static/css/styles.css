@@ -155,6 +155,10 @@ footer {
 
 /********************************/
 
+#products .dish{
+    display: none;
+}
+
 .dish {
     margin-bottom: 20px;
     padding: 20px;
